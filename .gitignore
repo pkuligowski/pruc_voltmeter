@@ -5,3 +5,6 @@
 *.str
 *.jou
 .Xil
+
+# maintain required directories
+!**/.keep
