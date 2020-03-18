@@ -44,6 +44,8 @@ architecture Behavioral of Top_tb is
     end component;
 
     signal clock, serial_o, led_o : std_logic;
+    signal data : std_logic_vector(23 downto 0);
+    signal busy : std_logic;
 begin
     control_logic: Top                           
         port map(CLK_GLOBAL => clock, SERIAL_OUT => serial_o, LED => led_o);

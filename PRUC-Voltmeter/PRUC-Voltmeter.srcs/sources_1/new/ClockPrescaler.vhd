@@ -33,13 +33,13 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 --use UNISIM.VComponents.all;
 
 entity ClockPrescaler is
-    Generic (prescaler: STD_LOGIC_VECTOR(23 downto 0) := "010110111000110110000000");
+    Generic ( PRESCALER: STD_LOGIC_VECTOR(23 downto 0) := "010110111000110110000000");
     Port ( CLK_IN : in STD_LOGIC;
            CLK_OUT : out STD_LOGIC);
 end ClockPrescaler;
 
 architecture Behavioral of ClockPrescaler is
-    -- prescaler should be (clock_speed/desired_clock_speed)/2 because you want a rising edge every period
+    -- PRESCALER should be (clock_speed/desired_clock_speed)/2 because you want a rising edge every period
     --signal  -- 6,000,000 in binary
     signal prescaler_counter: STD_LOGIC_VECTOR(23 downto 0) := (others => '0');
     signal newClock : std_logic := '0';
@@ -51,7 +51,7 @@ begin
     begin
         if rising_edge(CLK_IN) then
             prescaler_counter <= prescaler_counter + 1;
-            if(prescaler_counter > prescaler) then
+            if(prescaler_counter > PRESCALER) then
                 -- Iterate
                 newClock <= not newClock;
 

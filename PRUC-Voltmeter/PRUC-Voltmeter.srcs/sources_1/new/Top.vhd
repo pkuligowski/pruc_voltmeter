@@ -43,19 +43,46 @@ architecture Behavioral of Top is
         Port ( CLK_IN : in STD_LOGIC;
                CLK_OUT : out STD_LOGIC);
     end component;
+    
+    component ClockCounter is
+        Generic ( OVERFLOW: STD_LOGIC_VECTOR(23 downto 0));
+        Port ( CLK : in STD_LOGIC;
+           LOAD : in STD_LOGIC;
+           BUSY : out STD_LOGIC;
+           DOUT : out STD_LOGIC_VECTOR(23 downto 0));
+    end component;
+    
+    component ShiftRegisterP2S is
+        Generic (NUMBER_OF_BITS : integer);
+        Port ( DIN : in STD_LOGIC_VECTOR (NUMBER_OF_BITS-1 downto 0);
+               CLK : in STD_LOGIC;
+               START : in STD_LOGIC;
+               RST : in STD_LOGIC;
+               BUSY: out STD_LOGIC;
+               OUTPUT : out STD_LOGIC);
+    end component;
 
-    signal clock_internal, clock_internal_i : std_logic;
-    signal prescaler_input, prescaler_output : std_logic;
+    signal clock_input, clock_serial_tx, clock_trigger : std_logic;
+    signal counter_overflow : std_logic;
+    signal counter_data : std_logic_vector(23 downto 0);
 begin
-    clock_internal <= CLK_GLOBAL;
-    
-    prescaler_uart: ClockPrescaler 
-        generic map (prescaler => "000101101110001101100000") -- 4 Hz  
-        port map(CLK_IN => prescaler_input, CLK_OUT => prescaler_output);
+    prescaler_serial_tx: ClockPrescaler                                    
+        generic map(prescaler => "000000000000001001110001") -- 9600*2 Hz    
+        port map(CLK_IN => clock_input, CLK_OUT => clock_serial_tx);
 
-    prescaler_input <= clock_internal;
+    prescaler_trigger: ClockPrescaler 
+        generic map(prescaler => "000000000010010110000000") -- 1 Hz  
+        port map(CLK_IN => clock_serial_tx, CLK_OUT => clock_trigger);
     
-    LED <= prescaler_output;
-    SERIAL_OUT <= prescaler_output;
+    --counter: ClockCounter
+    --    generic map(OVERFLOW => "000000000000000000010010")
+    --    port map(CLK => clock_serial_tx, LOAD => clock_trigger, DOUT => counter_data, BUSY => counter_overflow);
+        
+    uart_shift_register: ShiftRegisterP2S
+        generic map(NUMBER_OF_BITS => 10)
+        port map(CLK => clock_serial_tx, START => clock_trigger, OUTPUT => SERIAL_OUT, DIN => "1010101011", RST => '0');
 
+    clock_input <= CLK_GLOBAL;
+
+    LED <= clock_trigger;
 end Behavioral;

@@ -1,10 +1,10 @@
-*.log
-*.sim
-*.runs
-*.cache
-*.str
-*.jou
-.Xil
+*
+
+!.gitignore
+!*.vhd
+!*.xpr
+!*.xdc
+!README.*
 
 # maintain required directories
 !**/.keep
