@@ -1,0 +1,9 @@
+# compile vhdl design source files
+vhdl xil_defaultlib  \
+"../../../../PRUC-Voltmeter.srcs/sources_1/new/ClockPrescaler.vhd" \
+"../../../../PRUC-Voltmeter.srcs/sources_1/new/ShiftRegisterP2S.vhd" \
+"../../../../PRUC-Voltmeter.srcs/sources_1/new/Top.vhd" \
+"../../../../PRUC-Voltmeter.srcs/sim_1/new/Top_tb.vhd" \
+
+# Do not sort compile order
+nosort
