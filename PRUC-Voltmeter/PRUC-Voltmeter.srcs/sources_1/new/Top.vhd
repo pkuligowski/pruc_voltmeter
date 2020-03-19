@@ -61,10 +61,19 @@ architecture Behavioral of Top is
                BUSY: out STD_LOGIC;
                OUTPUT : out STD_LOGIC);
     end component;
+    
+    component ShiftRegisterP2P is
+    Generic (NUMBER_OF_BITS : integer);
+    Port ( DIN : in STD_LOGIC_VECTOR (9 downto 0);
+           CLK : in STD_LOGIC;
+           RST : in STD_LOGIC;
+           DOUT : out STD_LOGIC_VECTOR (9 downto 0));
+    end component;
 
-    signal clock_input, clock_serial_tx, clock_trigger : std_logic;
-    signal counter_overflow : std_logic;
-    signal counter_data : std_logic_vector(23 downto 0);
+    signal clock_input, clock_serial_tx, clock_trigger, clock_buffers : STD_LOGIC;
+    signal counter_overflow : STD_LOGIC;
+    signal counter_data : STD_LOGIC_VECTOR(23 downto 0);
+    signal uart_buffer_bus : STD_LOGIC_VECTOR(9 downto 0);
 begin
     prescaler_serial_tx: ClockPrescaler                                    
         generic map(prescaler => "000000000000001001110001") -- 9600*2 Hz    
@@ -80,7 +89,22 @@ begin
         
     uart_shift_register: ShiftRegisterP2S
         generic map(NUMBER_OF_BITS => 10)
-        port map(CLK => clock_serial_tx, START => clock_trigger, OUTPUT => SERIAL_OUT, DIN => "1010101011", RST => '0');
+        port map(CLK => clock_serial_tx, START => clock_trigger, OUTPUT => SERIAL_OUT, DIN => uart_buffer_bus, RST => '0');
+    
+    uart_buffer_bus(0) <= '1';
+    uart_buffer_bus(7) <= '1';
+    
+    --uart_buffer_0: ShiftRegisterP2P      
+    --    generic map(NUMBER_OF_BITS => 8)                    
+    --    port map(CLK => clock_buffers, DIN => "1010000011", RST => reset, DOUT => uart_buffer_bus(6 downto 1));
+    
+    --uart_buffer_1: ShiftRegisterP2P      
+    --    generic map(NUMBER_OF_BITS => 8)                    
+    --    port map(CLK => clock_buffers, DIN => "1110100001", RST => reset, DOUT => uart_buffer_bus(6 downto 1));
+    
+    --uart_buffer_2: ShiftRegisterP2P      
+    --    generic map(NUMBER_OF_BITS => 8)                    
+    --    port map(CLK => clock_buffers, DIN => "1010101001", RST => reset, DOUT => uart_buffer_bus(6 downto 1));
 
     clock_input <= CLK_GLOBAL;
 

@@ -34,26 +34,26 @@ use IEEE.NUMERIC_STD.all;
 --use UNISIM.VComponents.all;
 
 entity ShiftRegisterP2P_tb is
-    Port ( DIN : in STD_LOGIC_VECTOR (9 downto 0);
+    Port ( DIN : in STD_LOGIC_VECTOR (7 downto 0);
            CLK : in STD_LOGIC;
            RST : in STD_LOGIC;
-           DOUT : out STD_LOGIC_VECTOR (9 downto 0));
+           DOUT : out STD_LOGIC_VECTOR (7 downto 0));
 end ShiftRegisterP2P_tb;
 
 architecture Behavioral of ShiftRegisterP2P_tb is
     component ShiftRegisterP2P is
     Generic (NUMBER_OF_BITS : integer);
-    Port ( DIN : in STD_LOGIC_VECTOR (9 downto 0);
+    Port ( DIN : in STD_LOGIC_VECTOR (7 downto 0);
            CLK : in STD_LOGIC;
            RST : in STD_LOGIC;
-           DOUT : out STD_LOGIC_VECTOR (9 downto 0));
+           DOUT : out STD_LOGIC_VECTOR (7 downto 0));
     end component;
     
     signal clock, reset : STD_LOGIC;
-    signal test_din : STD_LOGIC_VECTOR(9 downto 0) := (others => '0');
+    signal test_din : STD_LOGIC_VECTOR(7 downto 0) := (others => '0');
 begin
     shift_register_p2p: ShiftRegisterP2P      
-        generic map(NUMBER_OF_BITS => 10)                    
+        generic map(NUMBER_OF_BITS => 8)                    
         port map(CLK => clock, DIN => test_din, RST => reset, DOUT => DOUT);
 
     process
