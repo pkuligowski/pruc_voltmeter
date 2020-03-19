@@ -1,5 +1,7 @@
 *.jou
 *.log
+*.jobs
+**/synth_*
+**/impl_*
+**/wt/*
 **/ip/*
-*.runs
-*.cache
