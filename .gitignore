@@ -3,5 +3,7 @@
 *.jobs
 **/synth_*
 **/impl_*
+**/behav/*
 **/wt/*
 **/ip/*
+*.str

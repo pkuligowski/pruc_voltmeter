@@ -46,7 +46,7 @@ begin
     process (CLK, RST)
     begin
         if (RST = '1') then
-            DOUT <= (others => '1');
+            DOUT <= (others => 'Z');
         elsif rising_edge(CLK) then
             DOUT(NUMBER_OF_BITS-1 downto 0) <= DIN(NUMBER_OF_BITS-1 downto 0);
         end if;
