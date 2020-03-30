@@ -49,7 +49,7 @@ begin
 
     countClock: process(CLK_IN, newClock)
     begin
-        if rising_edge(CLK_IN) then
+        if falling_edge(CLK_IN) then
             prescaler_counter <= prescaler_counter + 1;
             if(prescaler_counter > PRESCALER) then
                 -- Iterate

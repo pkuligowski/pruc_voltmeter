@@ -60,43 +60,25 @@ architecture Behavioral of Top is
                BUSY: out STD_LOGIC;
                OUTPUT : out STD_LOGIC);
     end component;
-    
-    component ShiftRegisterP2P is
-    Generic (NUMBER_OF_BITS : integer);
-    Port ( DIN : in STD_LOGIC_VECTOR (NUMBER_OF_BITS-1 downto 0);
-           CLK : in STD_LOGIC;
-           RST : in STD_LOGIC;
-           DOUT : out STD_LOGIC_VECTOR (NUMBER_OF_BITS-1 downto 0));
-    end component;
 
-    component FsmUartSend is
-    Port ( TRIGGER : in STD_LOGIC;
-           SR_RST : out STD_LOGIC;
-           SR_CLK : out STD_LOGIC;
+    component UartBuffer is
+    Port ( CLK : in STD_LOGIC;
            RST : in STD_LOGIC;
-           CLK : in STD_LOGIC;
-           SR_START : out STD_LOGIC;
-           SR_BUSY : in STD_LOGIC);
-    end component;
-
-    component FsmUart is
-    Port ( START : in STD_LOGIC;
-           TRIGGER_1 : out STD_LOGIC;
            BUSY : in STD_LOGIC;
-           TRIGGER_2 : out STD_LOGIC;
-           RST : in STD_LOGIC;
-           CLK : in STD_LOGIC );
+           TRIGGER: in STD_LOGIC;
+           DIN_0 : in STD_LOGIC_VECTOR (7 downto 0);
+           DIN_1 : in STD_LOGIC_VECTOR (7 downto 0);
+           START : out STD_LOGIC;
+           DOUT : out STD_LOGIC_VECTOR (7 downto 0));
     end component;
 
     signal clock_input, clock_serial_tx, clock_trigger, clock_buffers : STD_LOGIC;
     signal counter_overflow : STD_LOGIC;
     signal counter_data : STD_LOGIC_VECTOR(15 downto 0);
-    signal uart_buffer_bus : STD_LOGIC_VECTOR(7 downto 0);
-    signal fsm_sr_clk_0, fsm_sr_rst_0, fsm_sr_start_0, fsm_sr_trig_0 : STD_LOGIC;
-    signal fsm_sr_clk_1, fsm_sr_rst_1, fsm_sr_start_1, fsm_sr_trig_1 : STD_LOGIC;
-    signal serial_output, global_reset, fsm_sr_busy : STD_LOGIC;
+    signal uart_bus : STD_LOGIC_VECTOR(7 downto 0);
+    signal serial_output, global_reset, serial_busy, serial_start : STD_LOGIC;
     
-    signal global_reset_counter : integer := 0;
+    signal global_reset_counter: STD_LOGIC_VECTOR(7 downto 0) := (others => '0');
 begin
     prescaler_serial_tx: ClockPrescaler                                    
         generic map(prescaler => "000000000000001001110001") -- 9600*2 Hz    
@@ -111,31 +93,27 @@ begin
         
     uart_shift_register: ShiftRegisterP2S
         generic map(NUMBER_OF_BITS => 8)
-        port map(CLK => clock_serial_tx, START => fsm_sr_start_0, OUTPUT => serial_output, DIN => uart_buffer_bus, RST => global_reset, BUSY => fsm_sr_busy);
+        port map(CLK => clock_serial_tx, START => serial_start, OUTPUT => serial_output, DIN => uart_bus, RST => global_reset, BUSY => serial_busy);
 
-    DEBUG <= serial_output;
+    uart_buffer: UartBuffer
+        port map(CLK => clock_serial_tx, RST => global_reset, BUSY => serial_busy, TRIGGER => clock_trigger, DIN_0 => "10101010", DIN_1 => "01010101", START => serial_start, DOUT => uart_bus);
+
+    DEBUG <= global_reset;
     SERIAL_OUT <= serial_output;
-    
-    fsm_uart: FsmUart
-        port map(START => clock_trigger, TRIGGER_1 => fsm_sr_trig_0, BUSY => fsm_sr_busy, TRIGGER_2 => fsm_sr_trig_1, RST => global_reset, CLK => clock_serial_tx);
 
-    uart_fsm_send_0: FsmUartSend
-        port map(TRIGGER => fsm_sr_trig_0, SR_RST => fsm_sr_rst_0, SR_CLK => fsm_sr_clk_0, RST => global_reset, CLK => clock_serial_tx, SR_START => fsm_sr_start_0, SR_BUSY => fsm_sr_busy);
-
-    uart_fsm_send_1: FsmUartSend
-        port map(TRIGGER => fsm_sr_trig_1, SR_RST => fsm_sr_rst_1, SR_CLK => fsm_sr_clk_1, RST => global_reset, CLK => clock_serial_tx, SR_START => fsm_sr_start_1, SR_BUSY => fsm_sr_busy);
-
-    uart_buffer_0: ShiftRegisterP2P      
-        generic map(NUMBER_OF_BITS => 8)                    
-        port map(CLK => fsm_sr_clk_0, DIN => "11001100", RST => fsm_sr_rst_0, DOUT => uart_buffer_bus);
-
-    uart_buffer_1: ShiftRegisterP2P      
-        generic map(NUMBER_OF_BITS => 8)                    
-        port map(CLK => fsm_sr_clk_1, DIN => "00110010", RST => fsm_sr_rst_1, DOUT => uart_buffer_bus);
-    
     clock_input <= CLK_GLOBAL;
 
     LED <= clock_trigger;
+    
+    process(clock_serial_tx)
+    begin
+        if falling_edge(clock_serial_tx) then
+            global_reset <= '0';
 
-    global_reset <= '0';
+            if global_reset_counter < 100 then
+                global_reset_counter <= global_reset_counter + 1;
+                global_reset <= '1';
+            end if;
+        end if;
+    end process;
 end Behavioral;

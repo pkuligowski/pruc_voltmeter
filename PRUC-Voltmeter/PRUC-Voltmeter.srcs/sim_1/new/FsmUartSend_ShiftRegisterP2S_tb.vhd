@@ -47,28 +47,20 @@ architecture Behavioral of FsmUartSend_ShiftRegisterP2S_tb is
                OUTPUT : out STD_LOGIC);
     end component;
     
-    component ShiftRegisterP2P is
-    Generic (NUMBER_OF_BITS : integer);
-    Port ( DIN : in STD_LOGIC_VECTOR (NUMBER_OF_BITS-1 downto 0);
-           CLK : in STD_LOGIC;
+    component UartBuffer is
+    Port ( CLK : in STD_LOGIC;
            RST : in STD_LOGIC;
-           DOUT : out STD_LOGIC_VECTOR (NUMBER_OF_BITS-1 downto 0));
+           BUSY : in STD_LOGIC;
+           TRIGGER: in STD_LOGIC;
+           DIN_0 : in STD_LOGIC_VECTOR (7 downto 0);
+           DIN_1 : in STD_LOGIC_VECTOR (7 downto 0);
+           START : out STD_LOGIC;
+           DOUT : out STD_LOGIC_VECTOR (7 downto 0));
     end component;
 
-    component FsmUartSend is
-    Port ( TRIGGER : in STD_LOGIC;
-           SR_RST : out STD_LOGIC;
-           SR_CLK : out STD_LOGIC;
-           RST : in STD_LOGIC;
-           CLK : in STD_LOGIC;
-           SR_START : out STD_LOGIC;
-           SR_BUSY : in STD_LOGIC);
-    end component;
-    
     signal clock_serial_tx, clock_trigger : STD_LOGIC;
-    signal uart_buffer_bus : STD_LOGIC_VECTOR(7 downto 0);
-    signal fsm_sr_clk_0, fsm_sr_rst_0, fsm_sr_start_0, fsm_sr_busy_0 : STD_LOGIC;
-    signal serial_output : STD_LOGIC;
+    signal uart_bus : STD_LOGIC_VECTOR(7 downto 0);
+    signal serial_output, serial_start, serial_busy : STD_LOGIC;
 
     signal step_counter : STD_LOGIC_VECTOR(6 downto 0) := (others => '0');
     
@@ -76,15 +68,11 @@ architecture Behavioral of FsmUartSend_ShiftRegisterP2S_tb is
 begin
     uart_shift_register: ShiftRegisterP2S
         generic map(NUMBER_OF_BITS => 8)
-        port map(CLK => clock_serial_tx, START => fsm_sr_start_0, OUTPUT => serial_output, DIN => uart_buffer_bus, RST => global_reset, BUSY => fsm_sr_busy_0);
+        port map(CLK => clock_serial_tx, START => serial_start, OUTPUT => serial_output, DIN => uart_bus, RST => global_reset, BUSY => serial_busy);
     
-    uart_fsm_send_0: FsmUartSend
-        port map(TRIGGER => clock_trigger, SR_RST => fsm_sr_rst_0, SR_CLK => fsm_sr_clk_0, RST => global_reset, CLK => clock_serial_tx, SR_START => fsm_sr_start_0, SR_BUSY => fsm_sr_busy_0);
-
-    uart_buffer_0: ShiftRegisterP2P      
-        generic map(NUMBER_OF_BITS => 8)                    
-        port map(CLK => fsm_sr_clk_0, DIN => "01010101", RST => fsm_sr_rst_0, DOUT => uart_buffer_bus);
-
+    uart_buffer: UartBuffer
+        port map(CLK => clock_serial_tx, RST => global_reset, BUSY => serial_busy, TRIGGER => clock_trigger, DIN_0 => "10101010", DIN_1 => "01010101", START => serial_start, DOUT => uart_bus);
+    
     process
     begin
         clock_serial_tx <= '0';

@@ -37,14 +37,16 @@ end Top_tb;
 
 architecture Behavioral of Top_tb is
     component Top is
-        Port ( CLK_GLOBAL : in STD_LOGIC;
-            SERIAL_OUT, LED : out STD_LOGIC);
+    Port ( CLK_GLOBAL : in STD_LOGIC;
+           SERIAL_OUT : out STD_LOGIC;
+           LED : out STD_LOGIC;
+           DEBUG : out STD_LOGIC);
     end component;
 
-    signal clock, serial_o, led_o : std_logic;
+    signal clock, serial_o, led_o, debug_o : std_logic;
 begin
     control_logic: Top                           
-        port map(CLK_GLOBAL => clock, SERIAL_OUT => serial_o, LED => led_o);
+        port map(CLK_GLOBAL => clock, SERIAL_OUT => serial_o, LED => led_o, DEBUG => debug_o);
     
     process
     begin
