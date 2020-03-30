@@ -41,52 +41,61 @@ entity FsmUartSend is
            SR_BUSY : in STD_LOGIC);
 end FsmUartSend;
 
-architecture Behavioral of FsmUartSend is
-    type state_type is (UNRST, CLK_UP, START_UP, WAIT_FOR_BUSY, ALL_DOWN, IDLE);
+architecture arch of FsmUartSend is
+    type state_type is (CLK_UP, START_UP, WAIT_FOR_BUSY, IDLE);
     signal state_reg, state_next: state_type;
+    signal trigger_detected, busy_detected : STD_LOGIC;
 begin
     process(CLK, RST)
 	begin
  	  	if RST = '1' then
  	  	    state_reg <= IDLE;
-	   	elsif (CLK'event and CLK='1') then
+	   	elsif rising_edge(CLK) then
 	   	    state_reg <= state_next;
         end if;
     end process;
 
 
-    process(state_reg, SR_BUSY, TRIGGER)
+    process(state_reg, TRIGGER, CLK, SR_BUSY)
     begin
-        case state_reg is
-            when IDLE =>
-                if TRIGGER='0' then
-                    state_next <= IDLE;
-                else
-                    state_next <= UNRST;
-                end if;
-            when UNRST =>
-                SR_RST <= '0';
-                SR_START <= '0';
-                SR_CLK <= '0';
-                state_next <= CLK_UP;
-            when CLK_UP =>
-                SR_CLK <= '1';
-                state_next <= START_UP;
-            when START_UP =>
-                SR_START <= '1';
-                state_next <= WAIT_FOR_BUSY;
-            when WAIT_FOR_BUSY =>
-                if SR_BUSY = '1' then
+        if rising_edge(TRIGGER) then
+            trigger_detected <= '1';
+        end if;
+        
+        if falling_edge(SR_BUSY) then
+            busy_detected <= '1';
+        end if;
+    
+        if falling_edge(CLK) then
+            case state_reg is
+                when IDLE =>
+                    if trigger_detected='1' then
+                        SR_RST <= '0';
+                        SR_START <= '0';
+                        SR_CLK <= '0';
+                        state_next <= CLK_UP;
+                    else
+                        state_next <= IDLE;
+                    end if;
+                when CLK_UP =>
+                    SR_CLK <= '1';
+                    state_next <= START_UP;
+                    trigger_detected <= '0';
+                when START_UP =>
+                    SR_START <= '1';
                     state_next <= WAIT_FOR_BUSY;
-                else
-                    state_next <= ALL_DOWN;
-                end if;
-            when ALL_DOWN =>
-                state_next <= IDLE;
-                SR_RST <= '1';
-                SR_START <= '0';
-                SR_CLK <= '0';
-        end case;
+                when WAIT_FOR_BUSY =>
+                    if busy_detected='1' then
+                        state_next <= IDLE;
+                        SR_RST <= '1';
+                        SR_START <= '0';
+                        SR_CLK <= '0';
+                        busy_detected <= '0';
+                    else
+                        state_next <= WAIT_FOR_BUSY;
+                    end if;
+            end case;
+        end if;
     end process;
 
-end Behavioral;
+end arch;

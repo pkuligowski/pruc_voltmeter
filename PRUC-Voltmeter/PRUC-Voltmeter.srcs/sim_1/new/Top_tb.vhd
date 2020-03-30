@@ -32,9 +32,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 --use UNISIM.VComponents.all;
 
 entity Top_tb is
-    Port ( CLK_GLOBAL : in STD_LOGIC;
-           SERIAL_OUT : out STD_LOGIC;
-           LED : out STD_LOGIC);
+
 end Top_tb;
 
 architecture Behavioral of Top_tb is
@@ -44,8 +42,6 @@ architecture Behavioral of Top_tb is
     end component;
 
     signal clock, serial_o, led_o : std_logic;
-    signal data : std_logic_vector(23 downto 0);
-    signal busy : std_logic;
 begin
     control_logic: Top                           
         port map(CLK_GLOBAL => clock, SERIAL_OUT => serial_o, LED => led_o);
