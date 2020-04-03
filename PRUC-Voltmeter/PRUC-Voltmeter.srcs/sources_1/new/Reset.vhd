@@ -2,9 +2,9 @@
 -- Company: 
 -- Engineer: 
 -- 
--- Create Date: 15.03.2020 22:04:11
+-- Create Date: 03.04.2020 18:36:45
 -- Design Name: 
--- Module Name: Counter - Behavioral
+-- Module Name: Reset - Behavioral
 -- Project Name: 
 -- Target Devices: 
 -- Tool Versions: 
@@ -32,20 +32,24 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity ClockCounter is
+entity Reset is
     Port ( CLK : in STD_LOGIC;
-           DOUT : out STD_LOGIC_VECTOR(15 downto 0));
-end ClockCounter;
+           RST : out STD_LOGIC);
+end Reset;
 
-architecture Behavioral of ClockCounter is
-    signal count: STD_LOGIC_VECTOR(15 downto 0) := (others => '0');
+architecture Behavioral of Reset is
+    signal reset_counter: STD_LOGIC_VECTOR(7 downto 0) := (others => '0');
 begin
-    count_clock: process(CLK)
+    process(CLK)
     begin
         if falling_edge(CLK) then
-            count <= count + 1;
+            RST <= '0';
+
+            if reset_counter < 100 then
+                reset_counter <= reset_counter + 1;
+                RST <= '1';
+            end if;
         end if;
     end process;
 
-    DOUT <= count;
 end Behavioral;

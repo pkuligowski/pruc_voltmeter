@@ -21,7 +21,6 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
@@ -71,6 +70,11 @@ architecture Behavioral of Top is
            START : out STD_LOGIC;
            DOUT : out STD_LOGIC_VECTOR (7 downto 0));
     end component;
+    
+    component Reset is
+    Port ( CLK : in STD_LOGIC;
+           RST : out STD_LOGIC);
+    end component;
 
     signal clock_input, clock_serial_tx, clock_trigger, clock_buffers : STD_LOGIC;
     signal counter_overflow : STD_LOGIC;
@@ -78,14 +82,14 @@ architecture Behavioral of Top is
     signal uart_bus : STD_LOGIC_VECTOR(7 downto 0);
     signal serial_output, global_reset, serial_busy, serial_start : STD_LOGIC;
     
-    signal global_reset_counter: STD_LOGIC_VECTOR(7 downto 0) := (others => '0');
 begin
     prescaler_serial_tx: ClockPrescaler                                    
         generic map(prescaler => "000000000000001001110001") -- 9600*2 Hz    
         port map(CLK_IN => clock_input, CLK_OUT => clock_serial_tx);
 
     prescaler_trigger: ClockPrescaler 
-        generic map(prescaler => "000000000010010110000000") -- 1 Hz  
+        ---generic map(prescaler => "000000000010010110000000") -- 1 Hz
+        generic map(prescaler => "000000000000000000110100") -- 100 Hz  
         port map(CLK_IN => clock_serial_tx, CLK_OUT => clock_trigger);
     
     counter: ClockCounter
@@ -96,24 +100,16 @@ begin
         port map(CLK => clock_serial_tx, START => serial_start, OUTPUT => serial_output, DIN => uart_bus, RST => global_reset, BUSY => serial_busy);
 
     uart_buffer: UartBuffer
-        port map(CLK => clock_serial_tx, RST => global_reset, BUSY => serial_busy, TRIGGER => clock_trigger, DIN_0 => "10101010", DIN_1 => "01010101", START => serial_start, DOUT => uart_bus);
+        --port map(CLK => clock_serial_tx, RST => global_reset, BUSY => serial_busy, TRIGGER => clock_trigger, DIN_0 => "10101010", DIN_1 => "01010101", START => serial_start, DOUT => uart_bus);
+        port map(CLK => clock_serial_tx, RST => global_reset, BUSY => serial_busy, TRIGGER => clock_trigger, DIN_0 => counter_data(7 downto 0), DIN_1 => counter_data(15 downto 8), START => serial_start, DOUT => uart_bus);
 
-    DEBUG <= global_reset;
+    reset_generator: Reset
+        port map(CLK => clock_serial_tx, RST => global_reset);
+
+    DEBUG <= serial_output;
     SERIAL_OUT <= serial_output;
 
     clock_input <= CLK_GLOBAL;
 
     LED <= clock_trigger;
-    
-    process(clock_serial_tx)
-    begin
-        if falling_edge(clock_serial_tx) then
-            global_reset <= '0';
-
-            if global_reset_counter < 100 then
-                global_reset_counter <= global_reset_counter + 1;
-                global_reset <= '1';
-            end if;
-        end if;
-    end process;
 end Behavioral;
