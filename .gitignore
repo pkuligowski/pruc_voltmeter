@@ -7,4 +7,10 @@
 **/wt/*
 **/ip/*
 *.str
-*.Xil/
+**.Xil/
+*.debug
+**/sim_scripts/
+**/synth/
+*.zip
+**/ila_0_synth_1/
+**/hw_1/

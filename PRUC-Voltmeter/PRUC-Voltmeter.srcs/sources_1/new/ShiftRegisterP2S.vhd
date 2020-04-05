@@ -34,66 +34,100 @@ use IEEE.NUMERIC_STD.all;
 --use UNISIM.VComponents.all;
 
 entity ShiftRegisterP2S is
-    Generic (NUMBER_OF_BITS : integer);
-    Port ( DIN : in STD_LOGIC_VECTOR (NUMBER_OF_BITS-1 downto 0);
+    Port ( DIN : in STD_LOGIC_VECTOR (7 downto 0);
            CLK : in STD_LOGIC;
            START : in STD_LOGIC;
            RST : in STD_LOGIC;
            BUSY: out STD_LOGIC;
-           OUTPUT : out STD_LOGIC;
-           b_counter : out integer);
+           OUTPUT : out STD_LOGIC);
 end ShiftRegisterP2S;
 
-architecture arch of ShiftRegisterP2S is
-    type state_type is (IDLE, SEND_DATA);
-    signal state_reg, state_next: state_type;
-
-    signal bits_counter : integer;
-    signal start_detected : STD_LOGIC;
+architecture RTL of ShiftRegisterP2S is
+    type state_type is (IDLE, BIT_START, BIT_0, BIT_1, BIT_2, BIT_3, BIT_4, BIT_5, BIT_6, BIT_7, BIT_STOP, WAIT_STOP);
+    signal state, state_next: state_type;
+    signal busy_out, output_out: STD_LOGIC;
 begin
-    process(CLK, RST)
-	begin
- 	  	if RST = '1' then
- 	  	    state_reg <= IDLE;
-	   	elsif rising_edge(CLK) then
-	   	    state_reg <= state_next;
-        end if;
-    end process;
-    
-    b_counter <= bits_counter;
-
-    process(state_reg, CLK, START)
+    update_state : process(CLK)
     begin
-        if rising_edge(START) then
-            start_detected <= '1';
-        end if;
-    
-        if falling_edge(CLK) then
-            case state_reg is
-                when IDLE =>
-                    if start_detected='1' then
-                        BUSY <= '1';
-                        OUTPUT <= '0';
-                        state_next <= SEND_DATA;
-                    else
-                        state_next <= IDLE;
-                        BUSY <= '0';
-                        bits_counter <= 0;
-                        OUTPUT <= '1';
-                    end if; 
-                when SEND_DATA =>
-                    start_detected <= '0';
-                    if bits_counter < NUMBER_OF_BITS then
-                        OUTPUT <= DIN(bits_counter);
-                        bits_counter <= bits_counter + 1;
-                        state_next <= SEND_DATA;
-                    else
-                        state_next <= IDLE;
-                        bits_counter <= 0;
-                        OUTPUT <= '1';
-                    end if;
-            end case;
+        if rising_edge(CLK) then
+            if (RST='1') then
+                state <= IDLE;
+            else
+                state <= state_next;
+            end if;
         end if;
     end process;
 
-end arch;
+    update_state_next : process(state, START, DIN)
+    begin
+            case state is
+                when IDLE =>
+                    busy_out <= '0';
+                    output_out <= '1';
+
+                    if START='1' then
+                        state_next <= BIT_START;
+                    else
+                        state_next <= IDLE;
+                    end if;
+                when BIT_START =>
+                    busy_out <= '1';
+                    output_out <= '0';
+                    state_next <= BIT_0;
+                when BIT_0 =>
+                    busy_out <= '1';
+                    output_out <= DIN(0);
+                    state_next <= BIT_1;
+                when BIT_1 =>
+                    busy_out <= '1';
+                    output_out <= DIN(1);
+                    state_next <= BIT_2;
+                when BIT_2 =>
+                    busy_out <= '1';
+                    output_out <= DIN(2);
+                    state_next <= BIT_3;
+                when BIT_3 =>
+                    busy_out <= '1';
+                    output_out <= DIN(3);
+                    state_next <= BIT_4;
+                when BIT_4 =>
+                    busy_out <= '1';
+                    output_out <= DIN(4);
+                    state_next <= BIT_5;
+                when BIT_5 =>
+                    busy_out <= '1';
+                    output_out <= DIN(5);
+                    state_next <= BIT_6;
+                when BIT_6 =>
+                    busy_out <= '1';
+                    output_out <= DIN(6);
+                    state_next <= BIT_7;
+                when BIT_7 =>
+                    busy_out <= '1';
+                    output_out <= DIN(7);
+                    state_next <= BIT_STOP;
+                when BIT_STOP =>
+                    busy_out <= '1';
+                    output_out <= '1';
+                    state_next <= WAIT_STOP;
+                when WAIT_STOP =>
+                    busy_out <= '0';
+                    output_out <= '1';
+                    if START='0' then
+                        state_next <= IDLE;
+                    else
+                        state_next <= WAIT_STOP;
+                    end if;
+                when others =>
+                    state_next <= IDLE;
+            end case;
+    end process;
+    
+    update_outputs : process(CLK, busy_out, output_out)
+    begin
+        if falling_edge(CLK) then
+            BUSY <= busy_out;
+            OUTPUT <= output_out;
+        end if;
+    end process;
+end RTL;

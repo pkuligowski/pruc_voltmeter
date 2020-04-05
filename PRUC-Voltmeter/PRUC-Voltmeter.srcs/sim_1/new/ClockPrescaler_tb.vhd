@@ -2,9 +2,9 @@
 -- Company: 
 -- Engineer: 
 -- 
--- Create Date: 03.04.2020 18:36:45
+-- Create Date: 04.04.2020 17:57:48
 -- Design Name: 
--- Module Name: Reset - Behavioral
+-- Module Name: ClockPrescaler_tb - Behavioral
 -- Project Name: 
 -- Target Devices: 
 -- Tool Versions: 
@@ -21,7 +21,6 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
@@ -32,24 +31,28 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity Reset is
-    Port ( CLK : in STD_LOGIC;
-           RST : out STD_LOGIC);
-end Reset;
+entity ClockPrescaler_tb is
+--  Port ( );
+end ClockPrescaler_tb;
 
-architecture Behavioral of Reset is
-    signal reset_counter: STD_LOGIC_VECTOR(7 downto 0) := (others => '0');
+architecture Behavioral of ClockPrescaler_tb is
+    component ClockPrescaler is
+        Generic (prescaler: STD_LOGIC_VECTOR(23 downto 0));
+        Port ( CLK_IN : in STD_LOGIC;
+               CLK_OUT : out STD_LOGIC);
+    end component;
+    
+    signal clock_input, clock_output: STD_LOGIC;
 begin
-    process(CLK)
+    prescaler: ClockPrescaler                                    
+        generic map(prescaler => "000000000000000000000011")
+        port map(CLK_IN => clock_input, CLK_OUT => clock_output);
+    
+    process
     begin
-        if falling_edge(CLK) then
-            RST <= '0';
-
-            if reset_counter < 10 then
-                reset_counter <= reset_counter + 1;
-                RST <= '1';
-            end if;
-        end if;
+        clock_input <= '0';
+        wait for 41666 ps;
+        clock_input <= '1';
+        wait for 41666 ps;
     end process;
-
 end Behavioral;

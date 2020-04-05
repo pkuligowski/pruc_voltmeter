@@ -38,25 +38,21 @@ end ShiftRegisterP2S_tb;
 
 architecture Behavioral of ShiftRegisterP2S_tb is
     component ShiftRegisterP2S is
-        Generic (NUMBER_OF_BITS : integer);
-        Port ( DIN : in STD_LOGIC_VECTOR (NUMBER_OF_BITS-1 downto 0);
+        Port ( DIN : in STD_LOGIC_VECTOR (7 downto 0);
                CLK : in STD_LOGIC;
                START : in STD_LOGIC;
                RST : in STD_LOGIC;
                BUSY: out STD_LOGIC;
-               OUTPUT : out STD_LOGIC;
-               b_counter : out integer);
+               OUTPUT : out STD_LOGIC);
     end component;
     
     signal sr_clk, sr_start, sr_output, sr_rst, sr_busy : STD_LOGIC;
     signal sr_din : STD_LOGIC_VECTOR(7 downto 0);
-    signal sr_b_counter : integer;
     
     signal step_counter : STD_LOGIC_VECTOR(6 downto 0) := (others => '0');
 begin
      uart_shift_register: ShiftRegisterP2S
-        generic map(NUMBER_OF_BITS => 8)
-        port map(CLK => sr_clk, START => sr_start, OUTPUT => sr_output, DIN => sr_din, RST => sr_rst, BUSY => sr_busy, b_counter => sr_b_counter);
+        port map(CLK => sr_clk, START => sr_start, OUTPUT => sr_output, DIN => sr_din, RST => sr_rst, BUSY => sr_busy);
 
     sr_din <= "01010101";
     

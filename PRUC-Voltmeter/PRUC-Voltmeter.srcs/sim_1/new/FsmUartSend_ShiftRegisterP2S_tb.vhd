@@ -38,8 +38,7 @@ end FsmUartSend_ShiftRegisterP2S_tb;
 
 architecture Behavioral of FsmUartSend_ShiftRegisterP2S_tb is
     component ShiftRegisterP2S is
-        Generic (NUMBER_OF_BITS : integer);
-        Port ( DIN : in STD_LOGIC_VECTOR (NUMBER_OF_BITS-1 downto 0);
+        Port ( DIN : in STD_LOGIC_VECTOR (7 downto 0);
                CLK : in STD_LOGIC;
                START : in STD_LOGIC;
                RST : in STD_LOGIC;
@@ -62,12 +61,11 @@ architecture Behavioral of FsmUartSend_ShiftRegisterP2S_tb is
     signal uart_bus : STD_LOGIC_VECTOR(7 downto 0);
     signal serial_output, serial_start, serial_busy : STD_LOGIC;
 
-    signal step_counter : STD_LOGIC_VECTOR(6 downto 0) := (others => '0');
+    signal step_counter, reset_counter : STD_LOGIC_VECTOR(6 downto 0) := (others => '0');
     
     signal global_reset : STD_LOGIC;
 begin
     uart_shift_register: ShiftRegisterP2S
-        generic map(NUMBER_OF_BITS => 8)
         port map(CLK => clock_serial_tx, START => serial_start, OUTPUT => serial_output, DIN => uart_bus, RST => global_reset, BUSY => serial_busy);
     
     uart_buffer: UartBuffer
@@ -76,8 +74,8 @@ begin
     process
     begin
         clock_serial_tx <= '0';
-        if step_counter > 8 then
-            if step_counter > 9 then
+        if step_counter > 32 then
+            if step_counter > 96 then
                 clock_trigger <= '0';
             else
                 clock_trigger <= '1';
@@ -86,18 +84,19 @@ begin
             clock_trigger <= '0';
         end if;
         
-        if step_counter > 1 then
-            global_reset <= '0';
-        else
-            global_reset <= '1';
-        end if;
-        
         wait for 50 us;
         
         clock_serial_tx <= '1';
         wait for 50 us;
         
         step_counter <= step_counter + 1;
+        
+        if reset_counter < 10 then
+            global_reset <= '1';
+            reset_counter <= reset_counter + 1;
+        else
+            global_reset <= '0';
+        end if;
     end process;
 
 end Behavioral;

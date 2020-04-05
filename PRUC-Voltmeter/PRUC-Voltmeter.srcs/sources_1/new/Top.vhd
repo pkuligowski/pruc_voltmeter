@@ -51,8 +51,7 @@ architecture Behavioral of Top is
     end component;
     
     component ShiftRegisterP2S is
-    Generic (NUMBER_OF_BITS : integer);
-    Port ( DIN : in STD_LOGIC_VECTOR (NUMBER_OF_BITS-1 downto 0);
+    Port ( DIN : in STD_LOGIC_VECTOR (7 downto 0);
                CLK : in STD_LOGIC;
                START : in STD_LOGIC;
                RST : in STD_LOGIC;
@@ -75,6 +74,12 @@ architecture Behavioral of Top is
     Port ( CLK : in STD_LOGIC;
            RST : out STD_LOGIC);
     end component;
+    
+    component ila_0 is
+    Port ( clk : in STD_LOGIC;
+           probe0 : in STD_LOGIC_VECTOR ( 0 to 0 );
+           probe1 : in STD_LOGIC_VECTOR ( 0 to 0 ));
+    end component;
 
     signal clock_input, clock_serial_tx, clock_trigger, clock_buffers : STD_LOGIC;
     signal counter_overflow : STD_LOGIC;
@@ -89,27 +94,28 @@ begin
 
     prescaler_trigger: ClockPrescaler 
         ---generic map(prescaler => "000000000010010110000000") -- 1 Hz
-        generic map(prescaler => "000000000000000000110100") -- 100 Hz  
+        generic map(prescaler => "000000000000000000110000") -- 100 Hz  
         port map(CLK_IN => clock_serial_tx, CLK_OUT => clock_trigger);
     
-    counter: ClockCounter
-        port map(CLK => clock_trigger, DOUT => counter_data);
+    --counter: ClockCounter
+    --    port map(CLK => clock_trigger, DOUT => counter_data);
         
     uart_shift_register: ShiftRegisterP2S
-        generic map(NUMBER_OF_BITS => 8)
         port map(CLK => clock_serial_tx, START => serial_start, OUTPUT => serial_output, DIN => uart_bus, RST => global_reset, BUSY => serial_busy);
 
     uart_buffer: UartBuffer
-        --port map(CLK => clock_serial_tx, RST => global_reset, BUSY => serial_busy, TRIGGER => clock_trigger, DIN_0 => "10101010", DIN_1 => "01010101", START => serial_start, DOUT => uart_bus);
-        port map(CLK => clock_serial_tx, RST => global_reset, BUSY => serial_busy, TRIGGER => clock_trigger, DIN_0 => counter_data(7 downto 0), DIN_1 => counter_data(15 downto 8), START => serial_start, DOUT => uart_bus);
+        port map(CLK => clock_serial_tx, RST => global_reset, BUSY => serial_busy, TRIGGER => clock_trigger, DIN_0 => "10101010", DIN_1 => "01010101", START => serial_start, DOUT => uart_bus);
+        --port map(CLK => clock_serial_tx, RST => global_reset, BUSY => serial_busy, TRIGGER => clock_trigger, DIN_0 => counter_data(7 downto 0), DIN_1 => counter_data(15 downto 8), START => serial_start, DOUT => uart_bus);
 
     reset_generator: Reset
         port map(CLK => clock_serial_tx, RST => global_reset);
 
-    DEBUG <= serial_output;
-    SERIAL_OUT <= serial_output;
+    ila: ila_0
+        port map(clk => clock_input, probe0(0) => clock_serial_tx, probe1(0)=> serial_output);
 
     clock_input <= CLK_GLOBAL;
 
+    DEBUG <= serial_output;
+    SERIAL_OUT <= serial_output;
     LED <= clock_trigger;
 end Behavioral;

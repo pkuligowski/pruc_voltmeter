@@ -21,7 +21,6 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
@@ -43,56 +42,94 @@ entity UartBuffer is
            DOUT : out STD_LOGIC_VECTOR (7 downto 0));
 end UartBuffer;
 
-architecture Behavioral of UartBuffer is
-    type state_type is (IDLE, SEND_0, SEND_1);
-    signal state_reg, state_next: state_type;
-    signal count: STD_LOGIC_VECTOR(15 downto 0) := (others => '0');
-    signal trigger_detected, busy_detected : STD_LOGIC;
+architecture RTL of UartBuffer is
+    type state_type is (IDLE, SEND_0, NOP_0, WAIT_0, SEND_1, NOP_1, WAIT_1, WAIT_TRIGGER);
+    signal state, state_next: state_type;
     
-    signal data_0, data_1 : STD_LOGIC_VECTOR (7 downto 0);
+    signal start_out: STD_LOGIC;
+    signal dout_out: STD_LOGIC_VECTOR (7 downto 0);
 begin
-    process(CLK, RST)
-	begin
- 	  	if RST = '1' then
- 	  	    state_reg <= IDLE;
-	   	elsif rising_edge(CLK) then
-	   	    state_reg <= state_next;
+    update_state : process(CLK)
+    begin
+        if rising_edge(CLK) then
+            if (RST='1') then
+                state <= IDLE;
+            else
+                state <= state_next;
+            end if;
         end if;
     end process;
 
-
-    process(state_reg, TRIGGER, CLK, BUSY)
+    update_state_next : process(state, TRIGGER, BUSY, DIN_0, DIN_1)
     begin
-        if falling_edge(CLK) or falling_edge(BUSY) or rising_edge(TRIGGER) then
-            case state_reg is
+            case state is
                 when IDLE =>
-                    START <= '0';
-                    DOUT <= "11111111";
-                    state_next <= IDLE;
+                    dout_out <= "11111111";
+                    start_out <= '0';
 
-                    if rising_edge(TRIGGER) then
-                        data_0 <= DIN_0;
-                        data_1 <= DIN_1;
+                    if TRIGGER = '1' then
                         state_next <= SEND_0;
-                        trigger_detected <= '1';
-                    end if;
-                when SEND_0 =>
-                    START <= '1';
-                    DOUT <= data_0;
-
-                    if falling_edge(BUSY) then
-                        START <= '0';
-                        state_next <= SEND_1;
-                    end if;
-                when SEND_1 =>
-                    START <= '1';
-                    DOUT <= data_1;
-                        
-                    if falling_edge(BUSY) then
-                        START <= '0';
+                    else
                         state_next <= IDLE;
                     end if;
+                when SEND_0 =>
+                    start_out <= '1';
+                    dout_out <= DIN_0;
+                    state_next <= NOP_0;
+                when NOP_0 =>
+                    start_out <= '1';
+                    dout_out <= DIN_0;
+                    if BUSY='1' then
+                        state_next <= WAIT_0;
+                    else
+                        state_next <= NOP_0;
+                    end if;
+                when WAIT_0 => 
+                    start_out <= '0';
+                    dout_out <= DIN_0;
+                    if BUSY='0' then
+                        state_next <= SEND_1;
+                    else
+                        state_next <= WAIT_0;
+                    end if;
+                when SEND_1 =>
+                    start_out <= '1';
+                    dout_out <= DIN_1;
+                    state_next <= NOP_1;
+                when NOP_1 =>
+                    start_out <= '1';
+                    dout_out <= DIN_1;
+                    if BUSY='1' then
+                        state_next <= WAIT_1;
+                    else
+                        state_next <= NOP_1;
+                    end if;
+                when WAIT_1 =>
+                    start_out <= '0';
+                    dout_out <= DIN_1;
+                    if BUSY='0' then
+                        state_next <= WAIT_TRIGGER; 
+                    else
+                        state_next <= WAIT_1;
+                    end if;
+                when WAIT_TRIGGER =>
+                    start_out <= '0';
+                    dout_out <= "11111111";
+                    if TRIGGER='0' then
+                        state_next <= IDLE;
+                    else
+                        state_next <= WAIT_TRIGGER;
+                    end if;
+                when others =>
+                    state_next <= IDLE;
             end case;
+    end process;
+    
+    update_outputs : process(CLK, start_out, dout_out)
+    begin
+        if falling_edge(CLK) then
+            START <= start_out;
+            DOUT <= dout_out;
         end if;
     end process;
-end Behavioral;
+end RTL;
