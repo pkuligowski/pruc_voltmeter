@@ -2,9 +2,9 @@
 -- Company: 
 -- Engineer: 
 -- 
--- Create Date: 06.04.2020 01:09:38
+-- Create Date: 17.05.2020 18:44:01
 -- Design Name: 
--- Module Name: AdcInterface_tb - Behavioral
+-- Module Name: AdcRawToMv_tb - Behavioral
 -- Project Name: 
 -- Target Devices: 
 -- Tool Versions: 
@@ -31,20 +31,23 @@ use IEEE.STD_LOGIC_1164.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity AdcInterface_tb is
+entity AdcRawToMv_tb is
 --  Port ( );
-end AdcInterface_tb;
+end AdcRawToMv_tb;
 
-architecture Behavioral of AdcInterface_tb is
-    component AdcInterface is
-        Port ( CLK : in STD_LOGIC);
+architecture Behavioral of AdcRawToMv_tb is
+    component AdcRawToMv is
+        Port ( RESET : in STD_LOGIC;
+               CLK : in STD_LOGIC;
+               DIN : in STD_LOGIC_VECTOR(15 downto 0);
+               DOUT : out STD_LOGIC_VECTOR(15 downto 0));
     end component;
-
-    signal clock : std_logic;
-begin
-    adc_interface: AdcInterface                           
-        port map(CLK => clock);
     
+    signal clock : STD_LOGIC;
+begin
+    adc_raw_to_mv: AdcRawToMv
+        port map(RESET => '0', CLK => clock, DIN => "0100110110011101", DOUT => open); -- test value for 1000mV
+
     process
     begin
         clock <= '0';
