@@ -95,11 +95,19 @@ architecture Behavioral of Top is
            DIN : in STD_LOGIC_VECTOR(15 downto 0);
            DOUT : out STD_LOGIC_VECTOR(15 downto 0));
     end component;
+    
+    component AdcMvToAscii is
+        Port ( RESET : in STD_LOGIC;
+               CLK : in STD_LOGIC;
+               DIN : in STD_LOGIC_VECTOR(15 downto 0);
+               ASCIIOUT : out STD_LOGIC_VECTOR(31 downto 0));
+    end component;
 
     signal clock_input, clock_serial_tx, clock_trigger, clock_buffers : STD_LOGIC;
     signal counter_overflow : STD_LOGIC;
     signal counter_data, adc_data_raw, adc_data_mv : STD_LOGIC_VECTOR(15 downto 0);
     signal uart_bus : STD_LOGIC_VECTOR(7 downto 0);
+    signal adc_ascii : STD_LOGIC_VECTOR(31 downto 0);
     signal serial_output, global_reset, serial_busy, serial_start : STD_LOGIC;
     
 begin
@@ -116,7 +124,7 @@ begin
         port map(CLK => clock_serial_tx, START => serial_start, OUTPUT => serial_output, DIN => uart_bus, RST => global_reset, BUSY => serial_busy);
 
     uart_buffer: UartBuffer
-        port map(CLK => clock_serial_tx, RST => global_reset, BUSY => serial_busy, TRIGGER => clock_trigger, DIN_0 => adc_data_mv(7 downto 0), DIN_1 => adc_data_mv(15 downto 8), START => serial_start, DOUT => uart_bus);
+        port map(CLK => clock_serial_tx, RST => global_reset, BUSY => serial_busy, TRIGGER => clock_trigger, DIN_0 => adc_ascii(31 downto 24), DIN_1 => adc_ascii(23 downto 16), START => serial_start, DOUT => uart_bus);
 
     reset_generator: Reset
         port map(CLK => clock_serial_tx, RST => global_reset);
@@ -129,6 +137,9 @@ begin
 
     adc_raw_to_mv: AdcRawToMv
         port map(RESET => global_reset, CLK => clock_input, DIN => adc_data_raw, DOUT => adc_data_mv);
+
+    adc_mv_to_ascii: AdcMvToAscii
+        port map(RESET => global_reset, CLK => clock_input, DIN => adc_data_mv, ASCIIOUT => adc_ascii); -- test value for 3215mV
 
     clock_input <= CLK_GLOBAL;
 
