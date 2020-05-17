@@ -2,9 +2,9 @@
 -- Company: 
 -- Engineer: 
 -- 
--- Create Date: 14.03.2020 21:47:07
+-- Create Date: 17.05.2020 01:02:08
 -- Design Name: 
--- Module Name: Top_tb - Behavioral
+-- Module Name: Adc_tb - Behavioral
 -- Project Name: 
 -- Target Devices: 
 -- Tool Versions: 
@@ -31,24 +31,22 @@ use IEEE.STD_LOGIC_1164.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity Top_tb is
+entity Adc_tb is
+--  Port ( );
+end Adc_tb;
 
-end Top_tb;
-
-architecture Behavioral of Top_tb is
-    component Top is
-    Port ( CLK_GLOBAL : in STD_LOGIC;
-           SERIAL_OUT : out STD_LOGIC;
-           LED : out STD_LOGIC;
-           DEBUG : out STD_LOGIC;
+architecture Behavioral of Adc_tb is
+    component Adc is
+    Port ( RESET : in STD_LOGIC;
+           CLK : in STD_LOGIC;
            xa_n, xa_p : in STD_LOGIC);
     end component;
-
-    signal clock, serial_o, led_o, debug_o : std_logic;
-begin
-    control_logic: Top                           
-        port map(CLK_GLOBAL => clock, SERIAL_OUT => serial_o, LED => led_o, DEBUG => debug_o, xa_n => '0', xa_p => '0');
     
+    signal clock : STD_LOGIC;
+begin
+    aadc: Adc                           
+        port map(RESET => '0', CLK => clock, xa_n => '0', xa_p => '0');
+
     process
     begin
         clock <= '0';
@@ -56,5 +54,4 @@ begin
         clock <= '1';
         wait for 41666 ps;
     end process;
-
 end Behavioral;

@@ -35,7 +35,8 @@ entity Top is
     Port ( CLK_GLOBAL : in STD_LOGIC;
            SERIAL_OUT : out STD_LOGIC;
            LED : out STD_LOGIC;
-           DEBUG : out STD_LOGIC);
+           DEBUG : out STD_LOGIC;
+           xa_n, xa_p : in STD_LOGIC);
 end Top;
 
 architecture Behavioral of Top is
@@ -80,10 +81,17 @@ architecture Behavioral of Top is
            probe0 : in STD_LOGIC_VECTOR ( 0 to 0 );
            probe1 : in STD_LOGIC_VECTOR ( 0 to 0 ));
     end component;
+    
+    component Adc is
+    Port ( RESET : in STD_LOGIC;
+           CLK : in STD_LOGIC;
+           xa_n, xa_p : in STD_LOGIC;
+           DOUT : out STD_LOGIC_VECTOR(15 downto 0));
+    end component;
 
     signal clock_input, clock_serial_tx, clock_trigger, clock_buffers : STD_LOGIC;
     signal counter_overflow : STD_LOGIC;
-    signal counter_data : STD_LOGIC_VECTOR(15 downto 0);
+    signal counter_data, adc_data : STD_LOGIC_VECTOR(15 downto 0);
     signal uart_bus : STD_LOGIC_VECTOR(7 downto 0);
     signal serial_output, global_reset, serial_busy, serial_start : STD_LOGIC;
     
@@ -104,14 +112,17 @@ begin
         port map(CLK => clock_serial_tx, START => serial_start, OUTPUT => serial_output, DIN => uart_bus, RST => global_reset, BUSY => serial_busy);
 
     uart_buffer: UartBuffer
-        port map(CLK => clock_serial_tx, RST => global_reset, BUSY => serial_busy, TRIGGER => clock_trigger, DIN_0 => "10101010", DIN_1 => "01010101", START => serial_start, DOUT => uart_bus);
+        port map(CLK => clock_serial_tx, RST => global_reset, BUSY => serial_busy, TRIGGER => clock_trigger, DIN_0 => adc_data(7 downto 0), DIN_1 => adc_data(15 downto 8), START => serial_start, DOUT => uart_bus);
         --port map(CLK => clock_serial_tx, RST => global_reset, BUSY => serial_busy, TRIGGER => clock_trigger, DIN_0 => counter_data(7 downto 0), DIN_1 => counter_data(15 downto 8), START => serial_start, DOUT => uart_bus);
 
     reset_generator: Reset
         port map(CLK => clock_serial_tx, RST => global_reset);
 
     ila: ila_0
-        port map(clk => clock_input, probe0(0) => clock_serial_tx, probe1(0)=> serial_output);
+        port map(clk => clock_input, probe0(0) => global_reset, probe1(0)=> serial_output);
+
+    aadc: Adc
+        port map(RESET => global_reset, CLK => clock_input, xa_n => xa_n, xa_p => xa_p, DOUT => adc_data);
 
     clock_input <= CLK_GLOBAL;
 
