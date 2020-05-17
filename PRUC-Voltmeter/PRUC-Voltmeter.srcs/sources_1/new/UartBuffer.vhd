@@ -38,12 +38,25 @@ entity UartBuffer is
            TRIGGER: in STD_LOGIC;
            DIN_0 : in STD_LOGIC_VECTOR (7 downto 0);
            DIN_1 : in STD_LOGIC_VECTOR (7 downto 0);
+           DIN_2 : in STD_LOGIC_VECTOR (7 downto 0);
+           DIN_3 : in STD_LOGIC_VECTOR (7 downto 0);
+           DIN_4 : in STD_LOGIC_VECTOR (7 downto 0);
+           DIN_5 : in STD_LOGIC_VECTOR (7 downto 0);
+           DIN_6 : in STD_LOGIC_VECTOR (7 downto 0);
            START : out STD_LOGIC;
            DOUT : out STD_LOGIC_VECTOR (7 downto 0));
 end UartBuffer;
 
 architecture RTL of UartBuffer is
-    type state_type is (IDLE, SEND_0, NOP_0, WAIT_0, SEND_1, NOP_1, WAIT_1, WAIT_TRIGGER);
+    type state_type is (IDLE,
+                        SEND_0, NOP_0, WAIT_0,
+                        SEND_1, NOP_1, WAIT_1,
+                        SEND_2, NOP_2, WAIT_2,
+                        SEND_3, NOP_3, WAIT_3,
+                        SEND_4, NOP_4, WAIT_4,
+                        SEND_5, NOP_5, WAIT_5,
+                        SEND_6, NOP_6, WAIT_6,
+                        WAIT_TRIGGER);
     signal state, state_next: state_type;
     
     signal start_out: STD_LOGIC;
@@ -60,7 +73,7 @@ begin
         end if;
     end process;
 
-    update_state_next : process(state, TRIGGER, BUSY, DIN_0, DIN_1)
+    update_state_next : process(state, TRIGGER, BUSY, DIN_0, DIN_1, DIN_2, DIN_3, DIN_4, DIN_5, DIN_6)
     begin
             case state is
                 when IDLE =>
@@ -72,6 +85,7 @@ begin
                     else
                         state_next <= IDLE;
                     end if;
+                    
                 when SEND_0 =>
                     start_out <= '1';
                     dout_out <= DIN_0;
@@ -92,6 +106,7 @@ begin
                     else
                         state_next <= WAIT_0;
                     end if;
+                    
                 when SEND_1 =>
                     start_out <= '1';
                     dout_out <= DIN_1;
@@ -108,10 +123,116 @@ begin
                     start_out <= '0';
                     dout_out <= DIN_1;
                     if BUSY='0' then
-                        state_next <= WAIT_TRIGGER; 
+                        state_next <= SEND_2; 
                     else
                         state_next <= WAIT_1;
                     end if;
+                    
+                when SEND_2 =>
+                    start_out <= '1';
+                    dout_out <= DIN_2;
+                    state_next <= NOP_2;
+                when NOP_2 =>
+                    start_out <= '1';
+                    dout_out <= DIN_2;
+                    if BUSY='1' then
+                        state_next <= WAIT_2;
+                    else
+                        state_next <= NOP_2;
+                    end if;
+                when WAIT_2 =>
+                    start_out <= '0';
+                    dout_out <= DIN_2;
+                    if BUSY='0' then
+                        state_next <= SEND_3; 
+                    else
+                        state_next <= WAIT_2;
+                    end if;
+                    
+                when SEND_3 =>
+                    start_out <= '1';
+                    dout_out <= DIN_3;
+                    state_next <= NOP_3;
+                when NOP_3 =>
+                    start_out <= '1';
+                    dout_out <= DIN_3;
+                    if BUSY='1' then
+                        state_next <= WAIT_3;
+                    else
+                        state_next <= NOP_3;
+                    end if;
+                when WAIT_3 =>
+                    start_out <= '0';
+                    dout_out <= DIN_3;
+                    if BUSY='0' then
+                        state_next <= SEND_4; 
+                    else
+                        state_next <= WAIT_3;
+                    end if;
+                
+                when SEND_4 =>
+                    start_out <= '1';
+                    dout_out <= DIN_4;
+                    state_next <= NOP_4;
+                when NOP_4 =>
+                    start_out <= '1';
+                    dout_out <= DIN_4;
+                    if BUSY='1' then
+                        state_next <= WAIT_4;
+                    else
+                        state_next <= NOP_4;
+                    end if;
+                when WAIT_4 =>
+                    start_out <= '0';
+                    dout_out <= DIN_4;
+                    if BUSY='0' then
+                        state_next <= SEND_5; 
+                    else
+                        state_next <= WAIT_4;
+                    end if;
+                    
+                when SEND_5 =>
+                    start_out <= '1';
+                    dout_out <= DIN_5;
+                    state_next <= NOP_5;
+                when NOP_5 =>
+                    start_out <= '1';
+                    dout_out <= DIN_5;
+                    if BUSY='1' then
+                        state_next <= WAIT_5;
+                    else
+                        state_next <= NOP_5;
+                    end if;
+                when WAIT_5 =>
+                    start_out <= '0';
+                    dout_out <= DIN_5;
+                    if BUSY='0' then
+                        state_next <= SEND_6; 
+                    else
+                        state_next <= WAIT_5;
+                    end if;
+                
+                when SEND_6 =>
+                    start_out <= '1';
+                    dout_out <= DIN_6;
+                    state_next <= NOP_6;
+                when NOP_6 =>
+                    start_out <= '1';
+                    dout_out <= DIN_6;
+                    if BUSY='1' then
+                        state_next <= WAIT_6;
+                    else
+                        state_next <= NOP_6;
+                    end if;
+                when WAIT_6 =>
+                    start_out <= '0';
+                    dout_out <= DIN_6;
+                    if BUSY='0' then
+                        state_next <= WAIT_TRIGGER; 
+                    else
+                        state_next <= WAIT_6;
+                    end if;
+                
                 when WAIT_TRIGGER =>
                     start_out <= '0';
                     dout_out <= "11111111";

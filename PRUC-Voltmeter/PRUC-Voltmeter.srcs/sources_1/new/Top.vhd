@@ -67,6 +67,11 @@ architecture Behavioral of Top is
            TRIGGER: in STD_LOGIC;
            DIN_0 : in STD_LOGIC_VECTOR (7 downto 0);
            DIN_1 : in STD_LOGIC_VECTOR (7 downto 0);
+           DIN_2 : in STD_LOGIC_VECTOR (7 downto 0);
+           DIN_3 : in STD_LOGIC_VECTOR (7 downto 0);
+           DIN_4 : in STD_LOGIC_VECTOR (7 downto 0);
+           DIN_5 : in STD_LOGIC_VECTOR (7 downto 0);
+           DIN_6 : in STD_LOGIC_VECTOR (7 downto 0);
            START : out STD_LOGIC;
            DOUT : out STD_LOGIC_VECTOR (7 downto 0));
     end component;
@@ -97,10 +102,10 @@ architecture Behavioral of Top is
     end component;
     
     component AdcMvToAscii is
-        Port ( RESET : in STD_LOGIC;
-               CLK : in STD_LOGIC;
-               DIN : in STD_LOGIC_VECTOR(15 downto 0);
-               ASCIIOUT : out STD_LOGIC_VECTOR(31 downto 0));
+    Port ( RESET : in STD_LOGIC;
+           CLK : in STD_LOGIC;
+           DIN : in STD_LOGIC_VECTOR(15 downto 0);
+           ASCIIOUT : out STD_LOGIC_VECTOR(31 downto 0));
     end component;
 
     signal clock_input, clock_serial_tx, clock_trigger, clock_buffers : STD_LOGIC;
@@ -112,34 +117,65 @@ architecture Behavioral of Top is
     
 begin
     prescaler_serial_tx: ClockPrescaler                                    
-        generic map(prescaler => "000000000000001001110001") -- 9600*2 Hz    
-        port map(CLK_IN => clock_input, CLK_OUT => clock_serial_tx);
+        generic map(prescaler => "000000000000001001110001") -- 9600 Hz    
+        port map(CLK_IN => clock_input,
+                 CLK_OUT => clock_serial_tx);
 
     prescaler_trigger: ClockPrescaler 
-        ---generic map(prescaler => "000000000010010110000000") -- 1 Hz
-        generic map(prescaler => "000000000000000000110000") -- 100 Hz  
-        port map(CLK_IN => clock_serial_tx, CLK_OUT => clock_trigger);
+        generic map(prescaler => "000000000001001011000000") -- 1 Hz
+        port map(CLK_IN => clock_serial_tx,
+                 CLK_OUT => clock_trigger);
 
     uart_shift_register: ShiftRegisterP2S
-        port map(CLK => clock_serial_tx, START => serial_start, OUTPUT => serial_output, DIN => uart_bus, RST => global_reset, BUSY => serial_busy);
+        port map(CLK => clock_serial_tx,
+                 START => serial_start,
+                 OUTPUT => serial_output,
+                 DIN => uart_bus,
+                 RST => global_reset,
+                 BUSY => serial_busy);
 
     uart_buffer: UartBuffer
-        port map(CLK => clock_serial_tx, RST => global_reset, BUSY => serial_busy, TRIGGER => clock_trigger, DIN_0 => adc_ascii(31 downto 24), DIN_1 => adc_ascii(23 downto 16), START => serial_start, DOUT => uart_bus);
+        port map(CLK => clock_serial_tx,
+                 RST => global_reset,
+                 BUSY => serial_busy,
+                 TRIGGER => clock_trigger,
+                 DIN_0 => adc_ascii(31 downto 24),
+                 DIN_1 => "00101110", -- .
+                 DIN_2 => adc_ascii(23 downto 16),
+                 DIN_3 => adc_ascii(15 downto 8),
+                 DIN_4 => adc_ascii(7 downto 0),
+                 DIN_5 => "00001101", -- \r
+                 DIN_6 => "00001010", -- \n
+                 START => serial_start,
+                 DOUT => uart_bus);
 
     reset_generator: Reset
-        port map(CLK => clock_serial_tx, RST => global_reset);
+        port map(CLK => clock_serial_tx,
+                 RST => global_reset);
 
     ila: ila_0
-        port map(clk => clock_input, probe0(0) => global_reset, probe1(0)=> serial_output);
+        port map(clk => clock_input,
+                 probe0(0) => global_reset,
+                 probe1(0)=> serial_output);
 
     aadc: Adc
-        port map(RESET => global_reset, CLK => clock_input, xa_n => xa_n, xa_p => xa_p, DOUT => adc_data_raw);
+        port map(RESET => global_reset,
+                 CLK => clock_input,
+                 xa_n => xa_n,
+                 xa_p => xa_p,
+                 DOUT => adc_data_raw);
 
     adc_raw_to_mv: AdcRawToMv
-        port map(RESET => global_reset, CLK => clock_input, DIN => adc_data_raw, DOUT => adc_data_mv);
+        port map(RESET => global_reset,
+                 CLK => clock_input,
+                 DIN => adc_data_raw,
+                 DOUT => adc_data_mv);
 
     adc_mv_to_ascii: AdcMvToAscii
-        port map(RESET => global_reset, CLK => clock_input, DIN => adc_data_mv, ASCIIOUT => adc_ascii); -- test value for 3215mV
+        port map(RESET => global_reset,
+                 CLK => clock_input,
+                 DIN => adc_data_mv,
+                 ASCIIOUT => adc_ascii);
 
     clock_input <= CLK_GLOBAL;
 
