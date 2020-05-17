@@ -46,9 +46,9 @@ architecture Behavioral of AdcRawToMv is
     signal state_reg, state_next: state_type;
 
     signal reg_din_raw : STD_LOGIC_VECTOR(15 downto 0);
-    signal temp_din : STD_LOGIC_VECTOR(21 downto 0) := (others => '0');
+    signal temp_din : STD_LOGIC_VECTOR(15 downto 0) := (others => '0');
     
-    signal reg_dout_mv: integer range 0 to 4000000;
+    signal reg_dout_mv: integer range 0 to 40000;
 begin
     process(CLK, RESET)
 	begin
@@ -69,10 +69,10 @@ begin
             case state_reg is
                 when DIN_READ =>
                     temp_din(11 downto 0) <= reg_din_raw(15 downto 4);
-	   	            temp_din(21 downto 12) <= (others => '0');
+	   	            temp_din(15 downto 12) <= (others => '0');
 	   	            state_next <= CALCULATIONS;
                 when CALCULATIONS =>
-                    reg_dout_mv <= (to_integer(unsigned(temp_din)) * 806) / 1000;
+                    reg_dout_mv <= (to_integer(unsigned(temp_din)) * 8) / 10;
                     state_next <= DOUT_WRITE;
                 when DOUT_WRITE =>
                     DOUT <= std_logic_vector(to_unsigned(reg_dout_mv, 16));
