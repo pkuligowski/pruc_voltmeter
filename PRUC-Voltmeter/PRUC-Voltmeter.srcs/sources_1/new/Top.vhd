@@ -60,7 +60,7 @@ architecture Behavioral of Top is
                OUTPUT : out STD_LOGIC);
     end component;
 
-    component UartBuffer is
+    component UartFsm is
     Port ( CLK : in STD_LOGIC;
            RST : in STD_LOGIC;
            BUSY : in STD_LOGIC;
@@ -81,11 +81,11 @@ architecture Behavioral of Top is
            RST : out STD_LOGIC);
     end component;
     
-    component ila_0 is
-    Port ( clk : in STD_LOGIC;
-           probe0 : in STD_LOGIC_VECTOR ( 0 to 0 );
-           probe1 : in STD_LOGIC_VECTOR ( 0 to 0 ));
-    end component;
+    --component ila_0 is
+    --Port ( clk : in STD_LOGIC;
+           --probe0 : in STD_LOGIC_VECTOR ( 0 to 0 );
+           --probe1 : in STD_LOGIC_VECTOR ( 0 to 0 ));
+    --end component;
     
     component Adc is
     Port ( RESET : in STD_LOGIC;
@@ -134,7 +134,7 @@ begin
                  RST => global_reset,
                  BUSY => serial_busy);
 
-    uart_buffer: UartBuffer
+    uart_buffer: UartFsm
         port map(CLK => clock_serial_tx,
                  RST => global_reset,
                  BUSY => serial_busy,
@@ -153,10 +153,10 @@ begin
         port map(CLK => clock_serial_tx,
                  RST => global_reset);
 
-    ila: ila_0
-        port map(clk => clock_input,
-                 probe0(0) => global_reset,
-                 probe1(0)=> serial_output);
+    --ila: ila_0
+        --port map(clk => clock_input,
+                 --probe0(0) => global_reset,
+                 --probe1(0)=> serial_output);
 
     aadc: Adc
         port map(RESET => global_reset,

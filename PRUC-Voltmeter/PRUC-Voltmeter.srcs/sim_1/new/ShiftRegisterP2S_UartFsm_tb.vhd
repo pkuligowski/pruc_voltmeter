@@ -4,7 +4,7 @@
 -- 
 -- Create Date: 21.03.2020 22:33:23
 -- Design Name: 
--- Module Name: FsmUartSend_ShiftRegisterP2S_tb - Behavioral
+-- Module Name: ShiftRegisterP2S_UartFsm_tb - Behavioral
 -- Project Name: 
 -- Target Devices: 
 -- Tool Versions: 
@@ -32,11 +32,11 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity FsmUartSend_ShiftRegisterP2S_tb is
+entity ShiftRegisterP2S_UartFsm_tb is
 --  Port ( );
-end FsmUartSend_ShiftRegisterP2S_tb;
+end ShiftRegisterP2S_UartFsm_tb;
 
-architecture Behavioral of FsmUartSend_ShiftRegisterP2S_tb is
+architecture Behavioral of ShiftRegisterP2S_UartFsm_tb is
     component ShiftRegisterP2S is
         Port ( DIN : in STD_LOGIC_VECTOR (7 downto 0);
                CLK : in STD_LOGIC;
@@ -46,13 +46,18 @@ architecture Behavioral of FsmUartSend_ShiftRegisterP2S_tb is
                OUTPUT : out STD_LOGIC);
     end component;
     
-    component UartBuffer is
+    component UartFsm is
     Port ( CLK : in STD_LOGIC;
            RST : in STD_LOGIC;
            BUSY : in STD_LOGIC;
            TRIGGER: in STD_LOGIC;
            DIN_0 : in STD_LOGIC_VECTOR (7 downto 0);
            DIN_1 : in STD_LOGIC_VECTOR (7 downto 0);
+           DIN_2 : in STD_LOGIC_VECTOR (7 downto 0);
+           DIN_3 : in STD_LOGIC_VECTOR (7 downto 0);
+           DIN_4 : in STD_LOGIC_VECTOR (7 downto 0);
+           DIN_5 : in STD_LOGIC_VECTOR (7 downto 0);
+           DIN_6 : in STD_LOGIC_VECTOR (7 downto 0);
            START : out STD_LOGIC;
            DOUT : out STD_LOGIC_VECTOR (7 downto 0));
     end component;
@@ -68,8 +73,20 @@ begin
     uart_shift_register: ShiftRegisterP2S
         port map(CLK => clock_serial_tx, START => serial_start, OUTPUT => serial_output, DIN => uart_bus, RST => global_reset, BUSY => serial_busy);
     
-    uart_buffer: UartBuffer
-        port map(CLK => clock_serial_tx, RST => global_reset, BUSY => serial_busy, TRIGGER => clock_trigger, DIN_0 => "10101010", DIN_1 => "01010101", START => serial_start, DOUT => uart_bus);
+    uart_buffer: UartFsm
+        port map(CLK => clock_serial_tx,
+                 RST => global_reset,
+                 BUSY => serial_busy,
+                 TRIGGER => clock_trigger,
+                 DIN_0 => "10101010",
+                 DIN_1 => "01010101",
+                 DIN_2 => "10101010",
+                 DIN_3 => "01010101",
+                 DIN_4 => "10101010",
+                 DIN_5 => "01010101",
+                 DIN_6 => "10101010",
+                 START => serial_start,
+                 DOUT => uart_bus);
     
     process
     begin

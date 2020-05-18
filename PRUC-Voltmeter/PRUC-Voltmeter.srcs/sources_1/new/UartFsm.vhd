@@ -4,7 +4,7 @@
 -- 
 -- Create Date: 30.03.2020 02:53:21
 -- Design Name: 
--- Module Name: UartBuffer - Behavioral
+-- Module Name: UartFsm - Behavioral
 -- Project Name: 
 -- Target Devices: 
 -- Tool Versions: 
@@ -31,7 +31,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity UartBuffer is
+entity UartFsm is
     Port ( CLK : in STD_LOGIC;
            RST : in STD_LOGIC;
            BUSY : in STD_LOGIC;
@@ -45,9 +45,9 @@ entity UartBuffer is
            DIN_6 : in STD_LOGIC_VECTOR (7 downto 0);
            START : out STD_LOGIC;
            DOUT : out STD_LOGIC_VECTOR (7 downto 0));
-end UartBuffer;
+end UartFsm;
 
-architecture RTL of UartBuffer is
+architecture RTL of UartFsm is
     type state_type is (IDLE,
                         SEND_0, NOP_0, WAIT_0,
                         SEND_1, NOP_1, WAIT_1,
