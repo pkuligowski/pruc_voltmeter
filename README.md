@@ -10,3 +10,9 @@ Dokumentacja płytki: [https://reference.digilentinc.com/reference/programmable-
 2. https://reference.digilentinc.com/reference/software/vivado/board-files?redirect=1
 * Po pobraniu zipa https://reference.digilentinc.com/vivado/installing-vivado/start#installing_digilent_board_files
 3. https://reference.digilentinc.com/learn/programmable-logic/tutorials/cmod-a7-programming-guide/start
+
+# Dokumentacja
+* 7Series XADC https://www.xilinx.com/support/documentation/user_guides/ug480_7Series_XADC.pdf
+* CMod A7-35T schemat https://reference.digilentinc.com/_media/reference/programmable-logic/cmod-a7/cmod_a7_sch.pdf
+* CMod A7-35T reference manual https://reference.digilentinc.com/_media/reference/programmable-logic/cmod-a7/cmod_a7_rm.pdf
+* ILA https://www.xilinx.com/support/documentation/ip_documentation/ila/v6_2/pg172-ila.pdf
