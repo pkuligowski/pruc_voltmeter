@@ -1,0 +1,11 @@
+set_property SRC_FILE_INFO {cfile:C:/Users/Lenovo/Dropbox/private/git/pruc_voltmeter/PRUC-Voltmeter/CmodA7_Master.xdc rfile:../CmodA7_Master.xdc id:1} [current_design]
+set_property src_info {type:XDC file:1 line:102 export:INPUT save:INPUT read:READ} [current_design]
+set_property -dict { PACKAGE_PIN K19   IOSTANDARD LVCMOS33 } [get_ports { qspi_cs    }]; #IO_L6P_T0_FCS_B_14 Sch=qspi_cs
+set_property src_info {type:XDC file:1 line:103 export:INPUT save:INPUT read:READ} [current_design]
+set_property -dict { PACKAGE_PIN D18   IOSTANDARD LVCMOS33 } [get_ports { qspi_dq[0] }]; #IO_L1P_T0_D00_MOSI_14 Sch=qspi_dq[0]
+set_property src_info {type:XDC file:1 line:104 export:INPUT save:INPUT read:READ} [current_design]
+set_property -dict { PACKAGE_PIN D19   IOSTANDARD LVCMOS33 } [get_ports { qspi_dq[1] }]; #IO_L1N_T0_D01_DIN_14 Sch=qspi_dq[1]
+set_property src_info {type:XDC file:1 line:105 export:INPUT save:INPUT read:READ} [current_design]
+set_property -dict { PACKAGE_PIN G18   IOSTANDARD LVCMOS33 } [get_ports { qspi_dq[2] }]; #IO_L2P_T0_D02_14 Sch=qspi_dq[2]
+set_property src_info {type:XDC file:1 line:106 export:INPUT save:INPUT read:READ} [current_design]
+set_property -dict { PACKAGE_PIN F18   IOSTANDARD LVCMOS33 } [get_ports { qspi_dq[3] }]; #IO_L2N_T0_D03_14 Sch=qspi_dq[3]
